@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, Button, ScrollView, Alert, TouchableOpacity, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, TextInput, Button, ScrollView, Alert, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
 import { writeAsStringAsync, readAsStringAsync, getInfoAsync, documentDirectory, cacheDirectory } from "expo-file-system/legacy";
+import AlertBox from "../modals/alertbox";
 
 const SETTINGS_FILE = (documentDirectory || cacheDirectory) + "settings.json";
 
 type PageSetting = { pageName: string; pageId: string; accessToken: string };
+type AlertType = 'success' | 'warning' | 'error';
 
 export default function SettingsScreen() {
   const [subscriptionKey, setSubscriptionKey] = useState("");
@@ -14,6 +16,12 @@ export default function SettingsScreen() {
   const [newAccessToken, setNewAccessToken] = useState("");
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [editPage, setEditPage] = useState<PageSetting | null>(null);
+
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState<AlertType>('success');
+    // Use state for custom title/message
+  const [alertTitle, setAlertTitle] = useState('Operation Successful');
+  const [alertMessage, setAlertMessage] = useState('Your post was published.');
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -31,14 +39,29 @@ export default function SettingsScreen() {
     loadSettings();
   }, []);
 
+  const isFirstLoad = React.useRef(true);
+
+  useEffect(() => {
+    if (isFirstLoad.current) {
+      isFirstLoad.current = false;
+      return;
+    }
+    saveSettings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pages]);
+
   const saveSettings = async () => {
     try {
       const data = { subscriptionKey, pages };
       await writeAsStringAsync(SETTINGS_FILE, JSON.stringify(data));
-      Alert.alert("Success", "Settings saved!");
+      // Alert.alert("Success", "Settings saved!");
     } catch (e) {
       console.log(e);
-      Alert.alert("Error", "Failed to save settings.");
+      // Alert.alert("Error", "Failed to save settings.");
+      setAlertTitle('Error!');
+      setAlertType('error');
+      setAlertMessage("Failed to save settings.");
+      setShowAlert(true);
     }
   };
 
@@ -49,19 +72,19 @@ export default function SettingsScreen() {
         pageId: newPageId.trim(),
         accessToken: newAccessToken.trim()
       }]);
+      // await saveSettings();
       setNewPageName("");
       setNewPageId("");
       setNewAccessToken("");
-      // saveSettings()
     }
   };
 
   const removePage = (index: number) => {
     setPages(pages.filter((_, i) => i !== index));
     if (editIndex === index) {
+      // await saveSettings();
       setEditIndex(null);
       setEditPage(null);
-      // saveSettings()
     }
   };
 
@@ -74,13 +97,17 @@ export default function SettingsScreen() {
   // Save the edited page
   const saveEdit = () => {
     if (!editPage?.pageName || !editPage?.pageId || !editPage?.accessToken) {
-      Alert.alert("All fields are required.");
+      // Alert.alert("All fields are required.");
+      setAlertTitle('Warning!');
+      setAlertType('warning');
+      setAlertMessage("All fields are required.");
+      setShowAlert(true);
       return;
     }
     setPages(pages.map((p, i) => (i === editIndex ? { ...editPage } : p)));
+    // await saveSettings();
     setEditIndex(null);
     setEditPage(null);
-    // saveSettings();
   };
 
   // Cancel editing
@@ -90,122 +117,122 @@ export default function SettingsScreen() {
   };
 
   return (
-  <KeyboardAvoidingView
-    behavior={Platform.OS === "ios" ? "padding" : "height"}
-    style={{ flex: 1 }}
-    keyboardVerticalOffset={70}
-  >
-    <ScrollView style={{ flex: 1, backgroundColor: "#fff" }} contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">
-      <Text style={{ fontSize: 22, fontWeight: "bold" }}>Settings</Text>
-      <Text>Subscription Key:</Text>
-      <TextInput
-        value={subscriptionKey}
-        onChangeText={setSubscriptionKey}
-        placeholder="Enter Subscription Key"
-        placeholderTextColor="#aaa"
-        style={{
-          borderWidth: 1, borderColor: "#888", backgroundColor: "#fff", color: "#111",
-          padding: 10, borderRadius: 5, fontSize: 16, marginVertical: 6
-        }}
-      />
-      <TextInput
-        value={newPageName}
-        onChangeText={setNewPageName}
-        placeholder="Page Name"
-        placeholderTextColor="#aaa"
-        style={{
-          borderWidth: 1, borderColor: "#888", backgroundColor: "#fff", color: "#111",
-          padding: 10, borderRadius: 5, fontSize: 16, marginVertical: 6
-        }}
-      />
-      <TextInput
-        value={newPageId}
-        onChangeText={setNewPageId}
-        placeholder="Page ID"
-        placeholderTextColor="#aaa"
-        style={{
-          borderWidth: 1, borderColor: "#888", backgroundColor: "#fff", color: "#111",
-          padding: 10, borderRadius: 5, fontSize: 16, marginVertical: 6
-        }}
-      />
-      <TextInput
-        value={newAccessToken}
-        onChangeText={setNewAccessToken}
-        placeholder="Access Token"
-        placeholderTextColor="#aaa"
-        style={{
-          borderWidth: 1, borderColor: "#888", backgroundColor: "#fff", color: "#111",
-          padding: 10, borderRadius: 5, fontSize: 16, marginVertical: 6
-        }}
-      />
-      <Button title="Add Page" onPress={addPage} />
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+      keyboardVerticalOffset={70}
+    >
+      <ScrollView style={settingsStyles.container}>
+        <AlertBox
+          visible={showAlert}
+          type={alertType}
+          title={alertTitle}         // Custom title
+          message={alertMessage}     // Custom message
+          onClose={() => setShowAlert(false)}
+        />
+        <Text style={settingsStyles.header}>Settings</Text>
+        <Text style={settingsStyles.label}>Subscription Key:</Text>
+        <TextInput
+          value={subscriptionKey}
+          onChangeText={setSubscriptionKey}
+          placeholder="Enter Subscription Key"
+          placeholderTextColor="#90a4ae"
+          style={settingsStyles.input}
+        />
+        <TextInput
+          value={newPageName}
+          onChangeText={setNewPageName}
+          placeholder="Page Name"
+          placeholderTextColor="#90a4ae"
+          style={settingsStyles.input}
+        />
+        <TextInput
+          value={newPageId}
+          onChangeText={setNewPageId}
+          placeholder="Page ID"
+          placeholderTextColor="#90a4ae"
+          style={settingsStyles.input}
+        />
+        <TextInput
+          value={newAccessToken}
+          onChangeText={setNewAccessToken}
+          placeholder="Access Token"
+          placeholderTextColor="#90a4ae"
+          style={settingsStyles.input}
+        />
+        <Button title="Add Page" color="#107913ff" onPress={addPage} />
 
-      <View style={{ marginVertical: 16 }}>
-        <Button title="Save Settings" onPress={saveSettings} />
-      </View>
-
-      <Text style={{ marginVertical: 8 }}>Pages:</Text>
-      {pages.length === 0 && (
-        <Text style={{ color: "#888", textAlign: "center", marginVertical: 20 }}>
-          No pages added yet. Please add a Page Name, Page ID, and Access Token.
-        </Text>
-      )}
-      {pages.map((page, index) => (
-        <View
-          key={index}
-          style={{ marginBottom: 8, borderBottomWidth: 1, borderBottomColor: "#eee", paddingBottom: 6, width: "100%" }}
-        >
-          {editIndex === index && editPage ? (
-            <>
-              <TextInput
-                value={editPage.pageName}
-                onChangeText={val => setEditPage({ ...editPage, pageName: val })}
-                placeholder="Page Name"
-                placeholderTextColor="#aaa"
-                style={{ borderWidth: 1, borderColor: '#555', borderRadius: 4, padding: 6, margin: 1, fontSize: 13 }}
-              />
-              <TextInput
-                value={editPage.pageId}
-                onChangeText={val => setEditPage({ ...editPage, pageId: val })}
-                placeholder="Page ID"
-                placeholderTextColor="#aaa"
-                style={{ borderWidth: 1, borderColor: '#555', borderRadius: 4, padding: 6, margin: 1, fontSize: 13 }}
-              />
-              <TextInput
-                value={editPage.accessToken}
-                onChangeText={val => setEditPage({ ...editPage, accessToken: val })}
-                placeholder="Access Token"
-                placeholderTextColor="#aaa"
-                style={{ borderWidth: 1, borderColor: '#555', borderRadius: 4, padding: 6, margin: 1, fontSize: 13 }}
-              />
-              <View style={{flexDirection: "row"}}>
-                <TouchableOpacity onPress={saveEdit} style={{ marginRight: 8 }}>
-                  <Text style={{ color: "#189d17", fontWeight: "bold" }}>Save</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={cancelEdit} style={{
-                }}>
-                  <Text style={{ color: "#c70000" }}>Cancel</Text>
-                </TouchableOpacity>
+        <Text style={settingsStyles.sectionTitle}>Configured Pages:</Text>
+        {pages.length === 0 && (
+          <Text style={settingsStyles.empty}>No pages added yet. Please add a Page Name, Page ID, and Access Token.</Text>
+        )}
+        {pages.map((page, index) => (
+          <View key={index} style={settingsStyles.pageCard}>
+            {editIndex === index && editPage ? (
+              <>
+                <TextInput
+                  value={editPage.pageName}
+                  onChangeText={val => setEditPage({ ...editPage, pageName: val })}
+                  placeholder="Page Name"
+                  placeholderTextColor="#aaa"
+                  style={settingsStyles.inputSmall}
+                />
+                <TextInput
+                  value={editPage.pageId}
+                  onChangeText={val => setEditPage({ ...editPage, pageId: val })}
+                  placeholder="Page ID"
+                  placeholderTextColor="#aaa"
+                  style={settingsStyles.inputSmall}
+                />
+                <TextInput
+                  value={editPage.accessToken}
+                  onChangeText={val => setEditPage({ ...editPage, accessToken: val })}
+                  placeholder="Access Token"
+                  placeholderTextColor="#aaa"
+                  style={settingsStyles.inputSmall}
+                />
+                <View style={settingsStyles.buttonRow}>
+                  <TouchableOpacity onPress={saveEdit}>
+                    <Text style={{ color: "#388e3c", fontWeight: "bold", marginRight: 22 }}>Save</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={cancelEdit}>
+                    <Text style={{ color: "#d32f2f" }}>Cancel</Text>
+                  </TouchableOpacity>
                 </View>
-            </>
-          ) : (
-            <>
-              <Text style={{fontWeight: "bold"}}>{page.pageName}</Text>
-              <Text>{page.pageId}</Text>
-              <Text>{page.accessToken ? page.accessToken.slice(0, 40) + "..." : ''}</Text>
-              <View style={{flexDirection: "row"}}>
-                <TouchableOpacity onPress={() => startEdit(index)} style={{ marginRight: 8 }}>
-                  <Text style={{ color: "#0056c7" }}>Edit</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => removePage(index)}>
-                  <Text style={{ color: "#c70000" }}>Remove</Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          )}
-        </View>
-      ))}
-    </ScrollView>
-  </KeyboardAvoidingView>
+              </>
+            ) : (
+              <>
+                <Text style={settingsStyles.pageName}>{page.pageName}</Text>
+                <Text style={settingsStyles.pageId}>{page.pageId}</Text>
+                <Text style={settingsStyles.pageToken}>{page.accessToken ? page.accessToken.slice(0, 24) + "..." : ''}</Text>
+                <View style={settingsStyles.buttonRow}>
+                  <TouchableOpacity onPress={() => startEdit(index)}>
+                    <Text style={{ color: "#1976d2", marginRight: 18 }}>Edit</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => removePage(index)}>
+                    <Text style={{ color: "#d32f2f" }}>Remove</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+          </View>
+        ))}
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
+
+const settingsStyles = StyleSheet.create({
+  container: { backgroundColor: "#f1f8e9", padding: 24, flex: 1, marginTop: 20},
+  header: { fontSize: 25, fontWeight: "bold", color: "#1976d2", marginBottom: 14 },
+  label: { fontSize: 16, color: "#1976d2" },
+  input: { borderWidth: 1, borderColor: "#bdbdbd", backgroundColor: "#fff", color: "#222", padding: 12, borderRadius: 10, fontSize: 17, marginBottom: 10 },
+  sectionTitle: { fontWeight: "bold", fontSize: 16, color: "#388e3c", marginVertical: 10 },
+  empty: { color: "#90a4ae", textAlign: "center", marginVertical: 20 },
+  pageCard: { marginBottom: 13, backgroundColor: "#f9fbe7", borderRadius: 12, padding: 12, borderLeftWidth: 5, borderColor: "#90caf9", elevation: 2 },
+  pageName: { fontWeight: "bold", fontSize: 15, color: "#1976d2" },
+  pageId: { fontSize: 13, color: "#444" },
+  pageToken: { fontSize: 10, color: "#90a4ae" },
+  buttonRow: { flexDirection: "row", marginTop: 4 },
+  inputSmall: { borderWidth: 1, borderColor: "#bdbdbd", backgroundColor: "#fff", color: "#222", padding: 7, borderRadius: 8, fontSize: 14, marginBottom: 5 },
+});

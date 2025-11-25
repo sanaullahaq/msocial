@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from "react";
-  import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, TextInput, Button, Image, ScrollView, Alert, ActivityIndicator, TouchableOpacity } from "react-native";
+import { useFocusEffect } from '@react-navigation/native';
+import { View, Text, TextInput, Button, Image, ScrollView, Alert, ActivityIndicator, TouchableOpacity, StyleSheet } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { ImagePickerAsset } from 'expo-image-picker';
 import { writeAsStringAsync, getInfoAsync, readAsStringAsync, documentDirectory, cacheDirectory } from "expo-file-system/legacy";
 import { validateSubsKey } from "../utils/utils";
+import AlertBox from "../modals/alertbox";
 
 const SETTINGS_FILE = (documentDirectory || cacheDirectory) + "settings.json";
 const LOG_FILE = (documentDirectory || cacheDirectory) + "logs.json";
 
 type PageEntry = { pageId: string; pageName: string; accessToken: string };
+type AlertType = 'success' | 'warning' | 'error';
 
 export default function FacebookPostTab() {
   const [caption, setCaption] = useState("");
@@ -17,6 +19,12 @@ export default function FacebookPostTab() {
   const [loading, setLoading] = useState(false);
   const [pages, setPages] = useState<PageEntry[]>([]);
   const [selectedPageIds, setSelectedPageIds] = useState<string[]>([]);
+
+const [showAlert, setShowAlert] = useState(false);
+const [alertType, setAlertType] = useState<AlertType>('success');
+  // Use state for custom title/message
+const [alertTitle, setAlertTitle] = useState('Operation Successful');
+const [alertMessage, setAlertMessage] = useState('Your post was published.');
 
   // Inside your PostTab component
   useFocusEffect(
@@ -102,9 +110,14 @@ export default function FacebookPostTab() {
     // }
 
     try {
-      if (images.length === 0) {
+      if (images.length === 0 && !caption) {
         setLoading(false);
-        Alert.alert("Please select at least one image.");
+        // Alert.alert("Please select at least one image or enter a caption.");
+        // To show alert:
+        setAlertTitle('Error!');
+        setAlertType('error');
+        setAlertMessage("Please select at least one image or enter a caption.");
+        setShowAlert(true);
         return;
       }
 
@@ -112,7 +125,11 @@ export default function FacebookPostTab() {
 
       if (chosenPages.length === 0) {
         setLoading(false);
-        Alert.alert("Please select at least one Facebook page.");
+        // Alert.alert("Please select at least one Facebook page.");
+        setAlertTitle('Error!');
+        setAlertType('error');
+        setAlertMessage("Please select at least one Facebook page.");
+        setShowAlert(true);
         return;
       }
 
@@ -173,17 +190,18 @@ export default function FacebookPostTab() {
           }
         }
 
+        let feedFormData = new FormData();
+        feedFormData.append("message", caption);
+        feedFormData.append("access_token", accessToken);
+        
         if (mediaIds.length > 0) {
-          let feedFormData = new FormData();
-          feedFormData.append("message", caption);
-          feedFormData.append("access_token", accessToken);
-
           mediaIds.forEach((mediaId, idx) => {
             feedFormData.append(
               `attached_media[${idx}]`,
               JSON.stringify({ media_fbid: mediaId })
             );
           });
+        }
 
           try {
             const feedRes = await fetch(
@@ -204,7 +222,7 @@ export default function FacebookPostTab() {
           } catch (err) {
             postErrors.push({ pageId, error: err });
           }
-        }
+        // }
       }
 
       const pageNameMap: { [key: string]: string } = {};
@@ -213,107 +231,143 @@ export default function FacebookPostTab() {
       });
 
       if (postErrors.length === 0) {
-        Alert.alert("Post published to selected pages!");
+        // Alert.alert("Post published to selected pages!");
+        setAlertTitle('Success!');
+        setAlertType('success');
+        setAlertMessage("Post published to selected pages!");
+        setShowAlert(true);
         setCaption("");
         setImages([]);
       } else {
-        Alert.alert(
-          "Some posts failed",
-          `Failed for: ${postErrors
-            .map((e) => pageNameMap[e.pageId] || "Unknown")
-            .filter(name => name)
-            .join(", ")}`
+        // Alert.alert(
+        //   "Some posts failed",
+        //   `Failed for: ${[
+        //       ...new Set(
+        //         postErrors
+        //           .map((e) => pageNameMap[e.pageId] || "Unknown")
+        //           .filter(Boolean)
+        //       )
+        //     ].join(", ")}`
+        // );
+        setAlertTitle('"Some posts failed"!');
+        setAlertType('warning');
+        setAlertMessage(
+          `Failed for: ${[
+              ...new Set(
+                postErrors
+                  .map((e) => pageNameMap[e.pageId] || "Unknown")
+                  .filter(Boolean)
+              )
+            ].join(", ")}`
         );
+        setShowAlert(true);
       }
     } catch (error) {
       if (error instanceof Error) {
-        Alert.alert("Error", error.message);
+        // Alert.alert("Error", error.message);
+        setAlertTitle('Error!');
+        setAlertType('error');
+        setAlertMessage(error.message);
+        setShowAlert(true);
       } else {
-        Alert.alert("Error", String(error));
+        // Alert.alert("Error", String(error));
+        setAlertTitle('Error!');
+        setAlertType('error');
+        setAlertMessage(String(error));
+        setShowAlert(true);
       }
     }
     setLoading(false);
   };
 
   return (
-    <ScrollView style={{ backgroundColor: "#fff", paddingTop: 10, paddingLeft: 20, paddingRight: 20, paddingBottom: 20 }}>
-      {/* Caption input */}
+    <ScrollView style={postStyles.container}>
+      <AlertBox
+        visible={showAlert}
+        type={alertType}
+        title={alertTitle}         // Custom title
+        message={alertMessage}     // Custom message
+        onClose={() => setShowAlert(false)}
+      />
+      <Text style={postStyles.header}>Create a Post</Text>
+      {pages.length > 0 && (
       <TextInput
-        multiline={true}
+        multiline
         numberOfLines={5}
-        style={{
-          // height: 50,
-          borderColor: '#cccccc',
-          borderWidth: 1,
-          borderRadius: 8,
-          paddingHorizontal: 10,
-          backgroundColor: '#fff',
-          color: '#000',
-          fontSize: 18,
-          marginBottom: 18,
-          minHeight: 80
-        }}
+        style={postStyles.input}
         placeholder="Enter caption..."
-        placeholderTextColor="#aaa"
+        placeholderTextColor="#90a4ae"
         value={caption}
         onChangeText={setCaption}
       />
+      )}
 
-      {/* Pages selection */}
-      <Text style={{ fontWeight: "bold", fontSize: 16, marginBottom: 8 }}>Select Pages to Post</Text>
+      <Text style={postStyles.sectionTitle}>Select Pages to Post</Text>
       {pages.length === 0 && (
         <Text style={{ color: "#a00", marginBottom: 10 }}>No Facebook pages configured in Settings.</Text>
       )}
-      <View style={{ marginBottom: 10 }}>
+      <View style={postStyles.pageList}>
         {pages.map(({ pageId, pageName }) => (
           <TouchableOpacity
             key={pageId}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              paddingVertical: 8,
-              backgroundColor: isSelected(pageId) ? "#eef" : "#fff"
-            }}
+            style={[postStyles.pageItem, isSelected(pageId) && postStyles.pageSelected]}
             onPress={() => toggleSelect(pageId)}
           >
-            <Text style={{ fontSize: 16, flex: 1 }}>{pageName}</Text>
-            <Text style={{ fontSize: 16 }}>
-              {isSelected(pageId) ? "✅" : "⬜"}
-            </Text>
+            <Text style={postStyles.pageText}>{pageName}</Text>
+            <Text style={postStyles.check}>{isSelected(pageId) ? "✅" : "⬜"}</Text>
           </TouchableOpacity>
         ))}
       </View>
-      <View style={{ flexDirection: "row", marginBottom: 24 }}>
-        <Button title="Select All" onPress={selectAll} />
-        <View style={{ width: 12 }} />
-        <Button title="Unselect All" onPress={unselectAll} />
-      </View>
+      {pages.length > 0 && (
+        <View style={postStyles.buttonsRow}>
+          <Button title="Select All" color="#04a7f3ff" onPress={selectAll} />
+          <View style={{ width: 12 }} />
+          <Button title="Unselect All" color="#f5c228ff" onPress={unselectAll} />
+        </View>
+      )}
 
-      {/* Images preview */}
-      <Button title="Attach Image" onPress={pickImage} />
-      <View style={{ flexDirection: "row", flexWrap: "wrap", marginVertical: 8 }}>
-        {images.map((img, idx) => (
-          <Image
+      {pages.length > 0 && (
+        <Button title="Attach Image" color="#a4b4bbff" onPress={pickImage} />
+      )}
+      {pages.length > 0 && (
+        <View style={postStyles.imagePreviewRow}>
+          {images.map((img, idx) => (
+            <Image
             key={idx}
             source={{ uri: img.uri }}
-            style={{ width: 80, height: 80, margin: 4, borderRadius: 8 }}
-          />
-        ))}
-      </View>
+            style={postStyles.imagePreview}
+            />
+          ))}
+        </View>
+      )}
 
       {loading && (
-        <ActivityIndicator
-          size="large"
-          color="#007AFF"
-          style={{ marginVertical: 20 }}
+        <ActivityIndicator size="large" color="#002a4dff" style={{ marginVertical: 20 }} />
+      )}
+      {/* {pages.length > 0 && ( */}
+      {selectedPageIds.length > 0 && (
+        <Button
+          title="Submit Post"
+          color="#04a7f3ff"
+          onPress={submitPostToFacebook}
+          disabled={loading || selectedPageIds.length === 0}
         />
       )}
-      <Button
-        title="Submit Post"
-        onPress={submitPostToFacebook}
-        disabled={loading || selectedPageIds.length === 0}
-        // color="#007AFF"
-      />
     </ScrollView>
   );
 }
+
+const postStyles = StyleSheet.create({
+  container: { backgroundColor: "#f9fbe7", padding: 20, flex: 1, marginTop: 20 },
+  header: { fontSize: 24, fontWeight: "bold", marginBottom: 18, color: "#1976d2" },
+  sectionTitle: { fontWeight: "bold", fontSize: 16, marginBottom: 6, color: "#388e3c" },
+  input: { borderColor: '#bdbdbd', borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, backgroundColor: '#fff', fontSize: 18, marginBottom: 18, minHeight: 80, color: "#222"},
+  pageList: { marginBottom: 10 },
+  pageItem: {paddingLeft: 10, paddingRight: 10, flexDirection: "row", alignItems: "center", paddingVertical: 8, borderRadius: 8, marginVertical: 2, backgroundColor: "#e1f5fe" },
+  pageSelected: { backgroundColor: "#b2ebf2" },
+  pageText: { fontSize: 16, flex: 1, color: "#222" },
+  check: { fontSize: 16 },
+  buttonsRow: { flexDirection: "row", marginBottom: 20 },
+  imagePreviewRow: { flexDirection: "row", flexWrap: "wrap", marginVertical: 8 },
+  imagePreview: { width: 80, height: 80, margin: 4, borderRadius: 10, borderColor: "#bdbdbd", borderWidth: 1 },
+});
