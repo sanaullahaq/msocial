@@ -22,7 +22,7 @@ export default function FacebookPostTab() {
 
 const [showAlert, setShowAlert] = useState(false);
 const [alertType, setAlertType] = useState<AlertType>('success');
-  // Use state for custom title/message
+// Use state for custom title/message
 const [alertTitle, setAlertTitle] = useState('Operation Successful');
 const [alertMessage, setAlertMessage] = useState('Your post was published.');
 
@@ -83,7 +83,8 @@ const [alertMessage, setAlertMessage] = useState('Your post was published.');
     }
   };
 
-  async function appendLog(entry: { pageId: any; success: boolean; response: any; caption: string; imageName: string; }) {
+  // async function appendLog(entry: { pageId: any; success: boolean; response: any; caption: string; imageName: string; }) {
+  async function appendLog(entry: { pageId: any; success: boolean; response: any; caption: string | null | undefined; }) {
     let logs = [];
     try {
       const info = await getInfoAsync(LOG_FILE);
@@ -92,7 +93,6 @@ const [alertMessage, setAlertMessage] = useState('Your post was published.');
         logs = JSON.parse(logText);
       }
     } catch {}
-    // logs.push({ ...entry, timestamp: new Date().toISOString() });
     logs.push({ ...entry, timestamp: new Date().toLocaleString() });
     await writeAsStringAsync(LOG_FILE, JSON.stringify(logs));
   }
@@ -114,9 +114,9 @@ const [alertMessage, setAlertMessage] = useState('Your post was published.');
         setLoading(false);
         // Alert.alert("Please select at least one image or enter a caption.");
         // To show alert:
-        setAlertTitle('Error!');
-        setAlertType('error');
-        setAlertMessage("Please select at least one image or enter a caption.");
+        setAlertTitle('Warning!');
+        setAlertType('warning');
+        setAlertMessage("Please select at least one image or enter a caption or both.");
         setShowAlert(true);
         return;
       }
@@ -126,8 +126,8 @@ const [alertMessage, setAlertMessage] = useState('Your post was published.');
       if (chosenPages.length === 0) {
         setLoading(false);
         // Alert.alert("Please select at least one Facebook page.");
-        setAlertTitle('Error!');
-        setAlertType('error');
+        setAlertTitle('Warning!');
+        setAlertType('warning');
         setAlertMessage("Please select at least one Facebook page.");
         setShowAlert(true);
         return;
@@ -178,13 +178,13 @@ const [alertMessage, setAlertMessage] = useState('Your post was published.');
             } else {
               postErrors.push({ pageId, error: uploadJson });
             }
-            await appendLog({
-              pageId,
-              success: !!uploadJson.id,
-              response: uploadJson,
-              caption,
-              imageName: name,
-            });
+            // await appendLog({
+            //   pageId,
+            //   success: !!uploadJson.id,
+            //   response: uploadJson,
+            //   caption: (caption ?? "")
+            //   // imageName: name,
+            // });
           } catch (err) {
             postErrors.push({ pageId, error: err });
           }
@@ -203,25 +203,31 @@ const [alertMessage, setAlertMessage] = useState('Your post was published.');
           });
         }
 
-          try {
-            const feedRes = await fetch(
-              `https://graph.facebook.com/${pageId}/feed`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "multipart/form-data"
-                },
-                body: feedFormData,
-              }
-            );
-            const feedJson = await feedRes.json();
-            const isSuccess = !!feedJson.id;
-            if (!isSuccess) {
-              postErrors.push({ pageId, error: feedJson });
+        try {
+          const feedRes = await fetch(
+            `https://graph.facebook.com/${pageId}/feed`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "multipart/form-data"
+              },
+              body: feedFormData,
             }
-          } catch (err) {
-            postErrors.push({ pageId, error: err });
+          );
+          const feedJson = await feedRes.json();
+          const isSuccess = !!feedJson.id;
+          if (!isSuccess) {
+            postErrors.push({ pageId, error: feedJson });
           }
+          await appendLog({
+            pageId,
+            success: isSuccess,
+            response: feedJson,
+            caption: (caption ?? "")
+        });
+        } catch (err) {
+          postErrors.push({ pageId, error: err });
+        }
         // }
       }
 
@@ -239,20 +245,10 @@ const [alertMessage, setAlertMessage] = useState('Your post was published.');
         setCaption("");
         setImages([]);
       } else {
-        // Alert.alert(
-        //   "Some posts failed",
-        //   `Failed for: ${[
-        //       ...new Set(
-        //         postErrors
-        //           .map((e) => pageNameMap[e.pageId] || "Unknown")
-        //           .filter(Boolean)
-        //       )
-        //     ].join(", ")}`
-        // );
-        setAlertTitle('"Some posts failed"!');
+        setAlertTitle('Post failed!');
         setAlertType('warning');
         setAlertMessage(
-          `Failed for: ${[
+          `For page(s): ${[
               ...new Set(
                 postErrors
                   .map((e) => pageNameMap[e.pageId] || "Unknown")
@@ -330,16 +326,42 @@ const [alertMessage, setAlertMessage] = useState('Your post was published.');
         <Button title="Attach Image" color="#a4b4bbff" onPress={pickImage} />
       )}
       {pages.length > 0 && (
+        // <View style={postStyles.imagePreviewRow}>
+        //   {images.map((img, idx) => (
+        //     <Image
+        //     key={idx}
+        //     source={{ uri: img.uri }}
+        //     style={postStyles.imagePreview}
+        //     />
+        //   ))}
+        // </View>
         <View style={postStyles.imagePreviewRow}>
           {images.map((img, idx) => (
-            <Image
-            key={idx}
-            source={{ uri: img.uri }}
-            style={postStyles.imagePreview}
-            />
+            <View key={idx} style={postStyles.imagePreviewContainer}>
+              <Image
+                source={{ uri: img.uri }}
+                style={postStyles.imagePreview}
+              />
+              <TouchableOpacity
+                style={postStyles.removeButton}
+                onPress={() => {
+                  // Remove the image at index idx
+                  setImages(prevImages => prevImages.filter((_, i) => i !== idx));
+                }}
+              >
+              <Text style={postStyles.removeButtonIcon}>ⓧ</Text>
+              </TouchableOpacity>
+            </View>
           ))}
+          
         </View>
       )}
+
+      {/* {images.length > 0 && (
+        <View style={postStyles.buttonsRow}>
+          <Button title="Clear All Images" color="#b60c1dff" onPress={() => setImages([])} />
+        </View>
+      )} */}
 
       {loading && (
         <ActivityIndicator size="large" color="#002a4dff" style={{ marginVertical: 20 }} />
@@ -368,6 +390,33 @@ const postStyles = StyleSheet.create({
   pageText: { fontSize: 16, flex: 1, color: "#222" },
   check: { fontSize: 16 },
   buttonsRow: { flexDirection: "row", marginBottom: 20 },
+  // imagePreviewRow: { flexDirection: "row", flexWrap: "wrap", marginVertical: 8 },
+  // imagePreview: { width: 80, height: 80, margin: 4, borderRadius: 10, borderColor: "#bdbdbd", borderWidth: 1 },
   imagePreviewRow: { flexDirection: "row", flexWrap: "wrap", marginVertical: 8 },
-  imagePreview: { width: 80, height: 80, margin: 4, borderRadius: 10, borderColor: "#bdbdbd", borderWidth: 1 },
+  imagePreviewContainer: {
+    position: 'relative',
+    margin: 4,
+    width: 80,
+    height: 80,
+  },
+  imagePreview: {
+    width: 80, height: 80, borderRadius: 10, borderColor: "#bdbdbd", borderWidth: 1,
+  },
+  removeButton: {
+    position: 'absolute',
+    top: -8,
+    right: -4,
+    // backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 2,
+    elevation: 2,
+    shadowColor: "#ccc",
+    shadowOffset: { width: 1, height: 1 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+  },
+  removeButtonIcon: {
+    fontSize: 18,
+    color: "#000000ff",
+  },
 });

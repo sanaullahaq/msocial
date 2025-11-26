@@ -22,17 +22,3 @@ export async function validateSubsKey(): Promise<boolean> {
     return false;
   }
 }
-
-// export async function appendLog(entry: { pageId: any; success: boolean; response: any; caption: string; imageName: string; }) {
-//   let logs = [];
-//   try {
-//       const info = await getInfoAsync(LOG_FILE);
-//       if (info.exists) {
-//       const logText = await readAsStringAsync(LOG_FILE);
-//       logs = JSON.parse(logText);
-//       }
-//   } catch {}
-
-//   logs.push({ ...entry, timestamp: new Date().toLocaleString() });
-//   await writeAsStringAsync(LOG_FILE, JSON.stringify(logs));
-// }

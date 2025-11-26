@@ -11,7 +11,7 @@ type PostLog = {
   success: boolean;
   response: any;
   caption: string;
-  imageName: string;
+  // imageName: string;
   timestamp: string;
 };
 
