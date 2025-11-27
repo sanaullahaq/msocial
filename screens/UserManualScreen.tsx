@@ -5,14 +5,6 @@ import { ScrollView, StyleSheet } from "react-native";
 import Markdown from "react-native-markdown-display";
 
 // You can style bullets, links, and paragraphs for good alignment.
-// const markdownStyles = {
-//   bullet_list: { marginLeft: 12 },
-//   bullet_list_icon: { marginRight: 8 },
-//   bullet_list_content: { marginLeft: 0 },
-//   ordered_list_icon: { marginRight: 8 },
-//   link: { color: "#1a0dab", textDecorationLine: "underline" },
-//   paragraph: { marginVertical: 4 },
-// };
 const markdownStyles = {
   body: {
     ...typography.body,
@@ -93,9 +85,6 @@ export default function UserManualScreen() {
   );
 }
 
-// const styles = StyleSheet.create({
-//   container: { backgroundColor: "#f1f8e9", padding: 20, marginTop: 20},
-// });
 const styles = StyleSheet.create({
   container: {
     flex: 1,
