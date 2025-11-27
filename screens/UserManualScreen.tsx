@@ -1,15 +1,30 @@
+import { colors, spacing, radii, typography, card } from "../theme/theme";
+import { SafeAreaView } from "react-native-safe-area-context";
 import React from "react";
 import { ScrollView, StyleSheet } from "react-native";
 import Markdown from "react-native-markdown-display";
 
 // You can style bullets, links, and paragraphs for good alignment.
+// const markdownStyles = {
+//   bullet_list: { marginLeft: 12 },
+//   bullet_list_icon: { marginRight: 8 },
+//   bullet_list_content: { marginLeft: 0 },
+//   ordered_list_icon: { marginRight: 8 },
+//   link: { color: "#1a0dab", textDecorationLine: "underline" },
+//   paragraph: { marginVertical: 4 },
+// };
 const markdownStyles = {
-  bullet_list: { marginLeft: 12 },
-  bullet_list_icon: { marginRight: 8 },
-  bullet_list_content: { marginLeft: 0 },
-  ordered_list_icon: { marginRight: 8 },
-  link: { color: "#1a0dab", textDecorationLine: "underline" },
-  paragraph: { marginVertical: 4 },
+  body: {
+    ...typography.body,
+  },
+  heading2: {
+    ...typography.subtitle,
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
+  },
+  bullet_list: { marginLeft: spacing.md },
+  paragraph: { marginVertical: spacing.xs },
+  link: { color: colors.primary, textDecorationLine: "underline" },
 };
 
 const manualMD = `
@@ -63,16 +78,29 @@ const manualMD = `
 - Refresh/renew access tokens when permissions change or expire.
 - You can post to as many pages as desired at once—success/failure shows per page.
 - 
+- 
+- 
+- 
 `;
 
 export default function UserManualScreen() {
   return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
     <ScrollView style={styles.container}>
       <Markdown style={markdownStyles}>{manualMD}</Markdown>
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
+// const styles = StyleSheet.create({
+//   container: { backgroundColor: "#f1f8e9", padding: 20, marginTop: 20},
+// });
 const styles = StyleSheet.create({
-  container: { backgroundColor: "#f1f8e9", padding: 20, marginTop: 20},
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+    paddingHorizontal: spacing.xl,
+    // paddingTop: spacing.xl,
+  },
 });
