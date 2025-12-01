@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -39,6 +39,16 @@ export default function LoginScreen({ navigation }: Props) {
     setAlertMessage(message);
     setAlertVisible(true);
   };
+
+   useEffect(() => {
+    const loadStoredEmail = async () => {
+      const stored = await loadUser();
+      if (stored?.email) {
+        setEmail(stored.email);
+      }
+    };
+    loadStoredEmail();
+  }, []);
 
   const handleLogin = async () => {
     if (!email.trim() || !password) {
@@ -103,9 +113,8 @@ export default function LoginScreen({ navigation }: Props) {
         <View style={styles.card}>
           <Text style={styles.title}>Welcome Back</Text>
           <Text style={styles.subtitle}>
-            Sign in to manage posts across your Facebook pages.
+            Sign in to manage posts across your pages.
           </Text>
-
           <TextInput
             style={styles.input}
             placeholder="Email"
@@ -133,7 +142,6 @@ export default function LoginScreen({ navigation }: Props) {
           />
 
           {/* Forgot password intentionally ignored for now */}
-
           <Text style={styles.footerText}>
             Don&apos;t have an account?{" "}
             <Text

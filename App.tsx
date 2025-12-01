@@ -17,6 +17,10 @@ import PostStep2Screen from "./screens/Post/Step2Screen";
 import PostStep3Screen from "./screens/Post/Step3Screen";
 import { ImagePickerAsset } from 'expo-image-picker';
 
+import * as SplashScreen from "expo-splash-screen";
+
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
 
 export type PostStackParamList = {
   PostStep1: undefined;
@@ -164,6 +168,30 @@ function MainTabs() {
 }
 
 export default function App() {
+  const [appIsReady, setAppIsReady] = React.useState(false);
+
+  React.useEffect(() => {
+    async function prepare() {
+      try {
+        // Load fonts, initial data, etc. here if needed
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        setAppIsReady(true);
+        // Hold splash for 5 seconds
+        setTimeout(async () => {
+          await SplashScreen.hideAsync();
+        }, 5000);
+      }
+    }
+    prepare();
+  }, []);
+
+  if (!appIsReady) {
+    // Keep native splash visible
+    return null;
+  }
+
   return (
     <NavigationContainer>
       <Stack.Navigator

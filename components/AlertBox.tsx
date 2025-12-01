@@ -74,8 +74,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl, // add this
   },
   alert: {
-    ...card.base,
-    // remove minWidth
+    ...card.base,               // if you’re spreading this
+    width: "80%",               // fixed relative width
+    maxWidth: 360,              // optional hard cap on large screens
     minHeight: 170,
     alignItems: "center",
     // borderTopWidth: 4,

@@ -59,94 +59,110 @@ export default function PostStep1Screen({ navigation }: Props) {
 
   const handleCloseAlert = () => {
     setAlertVisible(false);
-    navigation.navigate("PostStep1");
+    // navigation.navigate("PostStep1");
   };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-    <ScrollView contentContainerStyle={styles.container}>
-      <AlertBox
-        visible={alertVisible}
-        type={alertType}
-        title={alertTitle}
-        message={alertMessage}
-        onClose={handleCloseAlert}
-      />
-    {/* Top Canva-like card */}
-    <View style={styles.card}>
-        <Text style={styles.title}>Create a Post</Text>
-        <Text style={styles.subtitle}>
-        Write your caption and attach images before choosing pages.
-        </Text>
-
-        {/* Big caption box */}
-        <TextInput
-        multiline
-        numberOfLines={6}
-        style={styles.captionInput}
-        placeholder="Write your caption here..."
-        placeholderTextColor={colors.textMuted}
-        value={caption}
-        onChangeText={setCaption}
+      <View style={styles.container}>
+        <AlertBox
+          visible={alertVisible}
+          type={alertType}
+          title={alertTitle}
+          message={alertMessage}
+          onClose={handleCloseAlert}
         />
 
-        {/* Wide vertical image area*/}
-        {/* Attach image button */}
-      <AppButton title="Attach Image" variant="ghost" onPress={pickImage} />
-      {images.length > 0 && (
-        <View style={styles.imageList}>
-          {images.map((img, index) => (
-            <View key={index} style={styles.imageWrapper}>
-              <Image source={{ uri: img.uri }} style={styles.image} />
-              <TouchableOpacity
-                style={styles.removeButton}
-                onPress={() =>
-                  setImages((prev) => prev.filter((_, i) => i !== index))
-                }
-              >
-                <Text style={styles.removeButtonIcon}>ⓧ</Text>
-              </TouchableOpacity>
+        {/* Top Canva-like card */}
+        <View style={styles.card}>
+          <Text style={styles.title}>Create a Post</Text>
+          <Text style={styles.slogan}>Make post that goes everywhere</Text>
+          <Text style={styles.subtitle}>
+            Write your caption and attach images before choosing pages.
+          </Text>
+
+          <TextInput
+            multiline
+            numberOfLines={6}
+            style={styles.captionInput}
+            placeholder="Write your caption here..."
+            placeholderTextColor={colors.textMuted}
+            value={caption}
+            onChangeText={setCaption}
+          />
+
+          <AppButton
+            title="Attach Image"
+            variant="ghost"
+            onPress={pickImage}
+          />
+
+          {images.length > 0 && (
+            <View style={styles.imageScrollContainer}>
+              <ScrollView>
+                <View style={styles.imageList}>
+                  {images.map((img, index) => (
+                    <View key={index} style={styles.imageWrapper}>
+                      <Image source={{ uri: img.uri }} style={styles.image} />
+                      <TouchableOpacity
+                        style={styles.removeButton}
+                        onPress={() =>
+                          setImages((prev) =>
+                            prev.filter((_, i) => i !== index)
+                          )
+                        }
+                      >
+                        <Text style={styles.removeButtonIcon}>ⓧ</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              </ScrollView>
             </View>
-          ))}
+          )}
         </View>
-      )}
-    </View>
 
-    {/* Navigation buttons: Back to Featured Actions, Next */}
-    <View style={styles.navRow}>
-        <AppButton
-        title="Back"
-        variant="ghost"
-        onPress={() => navigation.getParent()?.navigate("Home")}
-        style={{ flex: 1, marginRight: spacing.sm }}
-        />
-        <AppButton
-        title="Next"
-        variant="primary"
-        onPress={handleNext}
-        style={{ flex: 1, marginLeft: spacing.sm }}
-        />
-    </View>
-    </ScrollView>
+        {/* Fixed navigation buttons */}
+        <View style={styles.navRow}>
+          <AppButton
+            title="Back"
+            variant="ghost"
+            onPress={() => navigation.getParent()?.navigate("Home")}
+            style={{ flex: 1, marginRight: spacing.sm }}
+          />
+          <AppButton
+            title="Next"
+            variant="primary"
+            onPress={handleNext}
+            style={{ flex: 1, marginLeft: spacing.sm }}
+          />
+        </View>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
+    flex: 1,
     backgroundColor: colors.background,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.xl,
   },
   card: {
     ...card.base,
-    marginBottom: spacing.xl,
+    flex: 1,                // takes all space above buttons
+    marginBottom: spacing.lg,
   },
   title: {
     ...typography.title,
     marginBottom: spacing.sm,
     color: colors.primary,
+  },
+  slogan: {
+    ...typography.muted,
+    color: colors.primary,
+    marginBottom: spacing.sm,
   },
   subtitle: {
     ...typography.muted,
@@ -165,17 +181,22 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
     marginBottom: spacing.md,
   },
-  imageList: {
+  imageScrollContainer: {
     marginTop: spacing.sm,
+    // height: 320,            // fixed viewport for images
+    flex: 1
+  },
+  imageList: {
+    // marginTop: spacing.sm,
+      paddingBottom: spacing.sm,
   },
   imageWrapper: {
     width: "100%",
-    height: 180,
+    height: 160,
     borderRadius: radii.md,
     overflow: "hidden",
     backgroundColor: colors.surface,
     marginBottom: spacing.sm,
-    elevation: 2,
     position: "relative",
   },
   image: {
@@ -191,7 +212,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     backgroundColor: "rgba(255,255,255,0.85)",
-    elevation: 2,
   },
   removeButtonIcon: {
     fontSize: 14,
@@ -199,6 +219,5 @@ const styles = StyleSheet.create({
   },
   navRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
   },
 });

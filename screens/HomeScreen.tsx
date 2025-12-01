@@ -4,6 +4,7 @@ import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { TabParamList } from "../App";
 import { colors, spacing, typography, card } from "../theme/theme";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Linking } from "react-native";
 
 type Props = BottomTabScreenProps<TabParamList, "Home">;
 
@@ -15,54 +16,79 @@ const features = [
   { key: "Page Settings", title: "Page Settings", icon: "settings" as const },
   { key: "User Settings", title: "User Settings", icon: "user" as const },
   { key: "Manual", title: "Manual", icon: "info" as const },
+  { key: "AboutUs", title: "About Us", icon: "smile" as const },
 ];
-
 
 export default function HomeScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-        <ScrollView contentContainerStyle={styles.container}>
-        {/* Top welcome area similar to Canva 3rd image */}
-        <View style={styles.headerCard}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        bounces={false}
+      >
+        <View>
+          {/* Top welcome area */}
+          <View style={styles.headerCard}>
             <Text style={styles.welcomeSmall}>Welcome back,</Text>
             <Text style={styles.welcomeBig}>Manage Your Posts</Text>
+            <Text style={styles.slogan}>Make post that goes everywhere</Text>
             <Text style={styles.welcomeBody}>
-            Quickly jump into posting, check logs, update settings or read the manual.
+              Quickly jump into posting, check logs, update settings or read the manual.
             </Text>
+          </View>
+
+          {/* Feature cards */}
+          <Text style={styles.sectionTitle}>Featured Actions</Text>
+
+          <View style={styles.grid}>
+            {features.map((item) => (
+              <TouchableOpacity
+                key={item.key}
+                style={styles.card}
+                activeOpacity={0.9}
+                onPress={() => {
+                  if (item.key === "AboutUs") {
+                    Linking.openURL("https://neurosoftglobal.com/");
+                  } else {
+                    navigation.navigate(item.key as keyof TabParamList);
+                  }
+                }}
+              >
+                <Feather
+                  name={item.icon}
+                  size={28}
+                  color={colors.primary}
+                  style={styles.cardIcon}
+                />
+                <Text style={styles.cardTitle}>{item.title}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
-        {/* Feature cards below “Featured Food” area analogy */}
-        <Text style={styles.sectionTitle}>Featured Actions</Text>
-
-        <View style={styles.grid}>
-          {features.map((item) => (
-            <TouchableOpacity
-              key={item.key}
-              style={styles.card}
-              activeOpacity={0.9}
-              onPress={() => navigation.navigate(item.key as keyof TabParamList)}
-            >
-              <Feather
-                name={item.icon}
-                size={28}
-                color={colors.primary}
-                style={styles.cardIcon}
-              />
-              <Text style={styles.cardTitle}>{item.title}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        </ScrollView>
+        {/* Footer credit pinned to bottom */}
+        <Text style={styles.footerCredit}>
+          © MSocial · Powered by Neurosoft Technologies
+        </Text>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
+
 const styles = StyleSheet.create({
+  // container: {
+  //   flexGrow: 1,
+  //   backgroundColor: colors.background,
+  //   paddingHorizontal: spacing.xl,
+  //   paddingVertical: spacing.xl,
+  // },
   container: {
     flexGrow: 1,
-    backgroundColor: colors.background,
+    justifyContent: "space-between",
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.xl,
+    backgroundColor: colors.background,
   },
   headerCard: {
     ...card.base,
@@ -81,6 +107,12 @@ const styles = StyleSheet.create({
   },
   welcomeBody: {
     ...typography.body,
+  },
+  slogan: {
+    ...typography.subtitle,
+    fontSize: 14,
+    color: colors.primary,
+    marginBottom: spacing.sm,
   },
   sectionTitle: {
     ...typography.subtitle,
@@ -109,4 +141,10 @@ const styles = StyleSheet.create({
     ...typography.body,
     fontSize: 13,
   },
+  footerCredit: {
+    ...typography.muted,
+    textAlign: "center",
+    marginTop: spacing.lg,
+  },
+
 });

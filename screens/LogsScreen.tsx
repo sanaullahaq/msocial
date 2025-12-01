@@ -10,6 +10,7 @@ import {
   Button,
   Alert,
   TouchableOpacity,
+  ScrollView,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import {
@@ -135,78 +136,81 @@ export default function LogTab() {
     );
   };
 
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={logStyles.container}>
-        <View style={logStyles.sectionRow}>
-          <Text style={logStyles.section}>Successful Posts</Text>
-          <TouchableOpacity
-            onPress={clearSuccessfulLogs}
-            style={logStyles.sectionIconButton}
-          >
-            <Ionicons name="trash" size={18} color="#d32f2f" />
-          </TouchableOpacity>
-        </View>
-        <View style={logStyles.listCard}>
-          <FlatList
-            data={successLogs}
-            keyExtractor={(_, idx) => "success" + idx}
-            renderItem={({ item }) => (
-              <View style={logStyles.logRow}>
-                <Text style={logStyles.pageId}>
-                  {getPageNameLabel(item.pageId)}
-                </Text>
-                <Text style={logStyles.caption}>{item.caption}</Text>
-                <Text style={logStyles.timestamp}>{item.timestamp}</Text>
-              </View>
-            )}
-            ListEmptyComponent={
-              <Text style={logStyles.empty}>No successful logs.</Text>
-            }
-          />
-        </View>
-
-        <View style={logStyles.sectionRow}>
-          <Text style={logStyles.section}>Failed Posts</Text>
-          <TouchableOpacity
-            onPress={clearFailedLogs}
-            style={logStyles.sectionIconButton}
-          >
-            <Ionicons name="trash" size={18} color="#d32f2f" />
-          </TouchableOpacity>
-        </View>
-        <View style={logStyles.listCard}>
-          <FlatList
-            data={failedLogs}
-            keyExtractor={(_, idx) => "failed" + idx}
-            renderItem={({ item }) => (
-              <View style={logStyles.logRowError}>
-                <Text style={logStyles.pageId}>
-                  {getPageNameLabel(item.pageId)}
-                </Text>
-                <Text style={logStyles.caption}>{item.caption}</Text>
-                <Text style={logStyles.timestamp}>{item.timestamp}</Text>
-                <Text style={logStyles.error}>
-                  {JSON.stringify(item.response)}
-                </Text>
-              </View>
-            )}
-            ListEmptyComponent={
-              <Text style={logStyles.empty}>No failed logs.</Text>
-            }
-          />
-        </View>
+return (
+  <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+    <ScrollView contentContainerStyle={logStyles.container}>
+      <View style={logStyles.sectionRow}>
+        <Text style={logStyles.section}>Successful Posts</Text>
+        <TouchableOpacity
+          onPress={clearSuccessfulLogs}
+          style={logStyles.sectionIconButton}
+        >
+          <Ionicons name="trash" size={18} color="#d32f2f" />
+        </TouchableOpacity>
       </View>
-    </SafeAreaView>
-  );
+
+      <View style={logStyles.listCard}>
+        <FlatList
+          scrollEnabled={false}
+          data={successLogs}
+          keyExtractor={(_, idx) => "success" + idx}
+          renderItem={({ item }) => (
+            <View style={logStyles.logRow}>
+              <Text style={logStyles.pageId}>
+                {getPageNameLabel(item.pageId)}
+              </Text>
+              <Text style={logStyles.caption}>{item.caption}</Text>
+              <Text style={logStyles.timestamp}>{item.timestamp}</Text>
+            </View>
+          )}
+          ListEmptyComponent={
+            <Text style={logStyles.empty}>No successful logs.</Text>
+          }
+        />
+      </View>
+
+      <View style={logStyles.sectionRow}>
+        <Text style={logStyles.section}>Failed Posts</Text>
+        <TouchableOpacity
+          onPress={clearFailedLogs}
+          style={logStyles.sectionIconButton}
+        >
+          <Ionicons name="trash" size={18} color="#d32f2f" />
+        </TouchableOpacity>
+      </View>
+
+      <View style={logStyles.listCard}>
+        <FlatList
+          scrollEnabled={false}
+          data={failedLogs}
+          keyExtractor={(_, idx) => "failed" + idx}
+          renderItem={({ item }) => (
+            <View style={logStyles.logRowError}>
+              <Text style={logStyles.pageId}>
+                {getPageNameLabel(item.pageId)}
+              </Text>
+              <Text style={logStyles.caption}>{item.caption}</Text>
+              <Text style={logStyles.timestamp}>{item.timestamp}</Text>
+              <Text style={logStyles.error}>
+                {JSON.stringify(item.response)}
+              </Text>
+            </View>
+          )}
+          ListEmptyComponent={
+            <Text style={logStyles.empty}>No failed logs.</Text>
+          }
+        />
+      </View>
+    </ScrollView>
+  </SafeAreaView>
+);
+
 }
 
 const logStyles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: colors.background,
     paddingHorizontal: spacing.xl,
-    // paddingTop: spacing.xl,
+    backgroundColor: colors.background,
   },
   section: {
     ...typography.subtitle,

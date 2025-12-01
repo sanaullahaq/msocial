@@ -1,4 +1,3 @@
-// components/AppButton.tsx
 import React from "react";
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle } from "react-native";
 import { colors, spacing, radii, typography } from "../theme/theme";

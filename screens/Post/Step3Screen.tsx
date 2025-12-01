@@ -43,30 +43,10 @@ export default function PostStep3Screen({ route, navigation }: Props) {
     // start posting logic
     const run = async () => {
       try {
-        // load pages and filter by pageIds
-        const info = await getInfoAsync(SETTINGS_FILE);
-        if (!info.exists) {
-          setAlertType("warning");
-          setAlertTitle("No pages");
-          setAlertMessage(
-            "No Facebook pages configured. Please add pages in Page Settings."
-          );
-          setAlertVisible(true);
-          return;
-        }
-
         const settingsContent = await readAsStringAsync(SETTINGS_FILE);
         const settings = JSON.parse(settingsContent);
         const allPages: PageEntry[] = settings.pages || [];
         const pages = allPages.filter((p) => pageIds.includes(p.pageId));
-
-        if (pages.length === 0) {
-          setAlertType("warning");
-          setAlertTitle("No pages selected");
-          setAlertMessage("Please select at least one Facebook page.");
-          setAlertVisible(true);
-          return;
-        }
 
         const postErrors: { pageId: string; error: any }[] = [];
 
@@ -177,8 +157,8 @@ export default function PostStep3Screen({ route, navigation }: Props) {
           ].join(", ");
 
           setAlertType("warning");
-          setAlertTitle("Some posts failed");
-          setAlertMessage(`Failed for page(s): ${failedNames}`);
+          setAlertTitle("Post Failed");
+          setAlertMessage(`For page(s): ${failedNames}`);
         }
       } catch (error) {
         setAlertType("error");

@@ -103,7 +103,7 @@ export default function SignUpScreen({ navigation }: Props) {
         />
 
         <View style={styles.card}>
-          <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.title}>Key Registration</Text>
           <Text style={styles.subtitle}>
             Sign up to start posting to your Facebook pages.
           </Text>
@@ -150,7 +150,7 @@ export default function SignUpScreen({ navigation }: Props) {
           />
 
           <AppButton
-            title="Sign Up"
+            title="Save"
             variant="primary"
             onPress={handleSignUp}
             loading={loading}
