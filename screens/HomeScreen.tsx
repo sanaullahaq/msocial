@@ -1,27 +1,22 @@
-// screens/HomeScreen.tsx
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
-import { TabParamList } from "../App"; // <-- import
-import { colors, spacing, radii, typography, card } from "../theme/theme";
+import { TabParamList } from "../App";
+import { colors, spacing, typography, card } from "../theme/theme";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-// type TabParamList = {
-//   Home: undefined;
-//   Post: undefined;
-//   Logs: undefined;
-//   Settings: undefined;
-//   Manual: undefined;
-// };
 
 type Props = BottomTabScreenProps<TabParamList, "Home">;
 
+import Feather from "@expo/vector-icons/Feather";
+
 const features = [
-  { key: "Post", title: "Post", description: "Create and publish posts to multiple Facebook pages." },
-  { key: "Logs", title: "Logs", description: "Review successful and failed post history." },
-  { key: "Settings", title: "Settings", description: "Manage subscription and Facebook page settings." },
-  { key: "Manual", title: "Manual", description: "Read how to configure and use the app." },
+  { key: "Post", title: "Post", icon: "send" as const },
+  { key: "Logs", title: "Logs", icon: "file-text" as const },
+  { key: "Page Settings", title: "Page Settings", icon: "settings" as const },
+  { key: "User Settings", title: "User Settings", icon: "user" as const },
+  { key: "Manual", title: "Manual", icon: "info" as const },
 ];
+
 
 export default function HomeScreen({ navigation }: Props) {
   return (
@@ -40,17 +35,22 @@ export default function HomeScreen({ navigation }: Props) {
         <Text style={styles.sectionTitle}>Featured Actions</Text>
 
         <View style={styles.grid}>
-            {features.map((item) => (
+          {features.map((item) => (
             <TouchableOpacity
-                key={item.key}
-                style={styles.card}
-                activeOpacity={0.9}
-                onPress={() => navigation.navigate(item.key as keyof TabParamList)}
+              key={item.key}
+              style={styles.card}
+              activeOpacity={0.9}
+              onPress={() => navigation.navigate(item.key as keyof TabParamList)}
             >
-                <Text style={styles.cardTitle}>{item.title}</Text>
-                <Text style={styles.cardBody}>{item.description}</Text>
+              <Feather
+                name={item.icon}
+                size={28}
+                color={colors.primary}
+                style={styles.cardIcon}
+              />
+              <Text style={styles.cardTitle}>{item.title}</Text>
             </TouchableOpacity>
-            ))}
+          ))}
         </View>
         </ScrollView>
     </SafeAreaView>
@@ -95,11 +95,15 @@ const styles = StyleSheet.create({
     ...card.base,
     width: "48%",
     marginBottom: spacing.lg,
+    alignItems: "center",
+  },
+  cardIcon: {
+    marginBottom: spacing.sm,
   },
   cardTitle: {
     ...typography.subtitle,
     fontSize: 16,
-    marginBottom: spacing.xs,
+    textAlign: "center",
   },
   cardBody: {
     ...typography.body,

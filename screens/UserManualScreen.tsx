@@ -69,10 +69,6 @@ const manualMD = `
 - If errors occur, open Logs for details.
 - Refresh/renew access tokens when permissions change or expire.
 - You can post to as many pages as desired at once—success/failure shows per page.
-- 
-- 
-- 
-- 
 `;
 
 export default function UserManualScreen() {

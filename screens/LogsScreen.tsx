@@ -2,9 +2,23 @@ import { colors, spacing, radii, typography, card } from "../theme/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import React, { useState } from "react";
-import { View, Text, FlatList, StyleSheet, Button, Alert, TouchableOpacity } from "react-native";
-import { useFocusEffect } from '@react-navigation/native';
-import { readAsStringAsync, getInfoAsync, writeAsStringAsync, documentDirectory, cacheDirectory } from "expo-file-system/legacy";
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  Button,
+  Alert,
+  TouchableOpacity,
+} from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
+import {
+  readAsStringAsync,
+  getInfoAsync,
+  writeAsStringAsync,
+  documentDirectory,
+  cacheDirectory,
+} from "expo-file-system/legacy";
 
 const LOG_FILE = (documentDirectory || cacheDirectory) + "logs.json";
 const SETTINGS_FILE = (documentDirectory || cacheDirectory) + "settings.json";
@@ -52,7 +66,7 @@ export default function LogTab() {
             const settingsText = await readAsStringAsync(SETTINGS_FILE);
             const data = JSON.parse(settingsText);
             const idMap: { [pageId: string]: string } = {};
-            for (let page of (data.pages || [])) {
+            for (let page of data.pages || []) {
               idMap[page.pageId] = page.pageName;
             }
             setPageMap(idMap);
@@ -69,8 +83,8 @@ export default function LogTab() {
     }, [])
   );
 
-  const successLogs = logs.filter(l => l.success);
-  const failedLogs = logs.filter(l => !l.success);
+  const successLogs = logs.filter((l) => l.success);
+  const failedLogs = logs.filter((l) => !l.success);
 
   function getPageNameLabel(pageId: string) {
     const pageName = pageMap[pageId];
@@ -83,12 +97,18 @@ export default function LogTab() {
       "Are you sure you want to delete ONLY successful logs?",
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Clear", style: "destructive", onPress: async () => {
-            const onlyFailed = logs.filter(l => !l.success);
-            await writeAsStringAsync(LOG_FILE, JSON.stringify([...onlyFailed].reverse()));
+        {
+          text: "Clear",
+          style: "destructive",
+          onPress: async () => {
+            const onlyFailed = logs.filter((l) => !l.success);
+            await writeAsStringAsync(
+              LOG_FILE,
+              JSON.stringify([...onlyFailed].reverse())
+            );
             setLogs(onlyFailed);
-          }
-        }
+          },
+        },
       ]
     );
   };
@@ -99,76 +119,84 @@ export default function LogTab() {
       "Are you sure you want to delete ONLY failed logs?",
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Clear", style: "destructive", onPress: async () => {
-            const onlySuccess = logs.filter(l => l.success);
-            await writeAsStringAsync(LOG_FILE, JSON.stringify([...onlySuccess].reverse()));
+        {
+          text: "Clear",
+          style: "destructive",
+          onPress: async () => {
+            const onlySuccess = logs.filter((l) => l.success);
+            await writeAsStringAsync(
+              LOG_FILE,
+              JSON.stringify([...onlySuccess].reverse())
+            );
             setLogs(onlySuccess);
-          }
-        }
+          },
+        },
       ]
     );
   };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-    <View style={logStyles.container}>
-      {/* <Text style={logStyles.section}>Successful Posts</Text> */}
-      <View style={logStyles.sectionRow}>
-        <Text style={logStyles.section}>Successful Posts</Text>
-        <TouchableOpacity
-          onPress={clearSuccessfulLogs}
-          style={logStyles.sectionIconButton}
-        >
-          <Ionicons name="trash" size={18} color="#d32f2f" />
-        </TouchableOpacity>
-      </View>
-      <View style={logStyles.listCard}>
-        <FlatList
-          // style={logStyles.listCard}
-          data={successLogs}
-          keyExtractor={(_, idx) => "success" + idx}
-          renderItem={({ item }) => (
-            <View style={logStyles.logRow}>
-              <Text style={logStyles.pageId}>{getPageNameLabel(item.pageId)}</Text>
-              <Text style={logStyles.caption}>{item.caption}</Text>
-              <Text style={logStyles.timestamp}>{item.timestamp}</Text>
-            </View>
-          )}
-          ListEmptyComponent={<Text style={logStyles.empty}>No successful logs.</Text>}
-        />
-      </View>
+      <View style={logStyles.container}>
+        <View style={logStyles.sectionRow}>
+          <Text style={logStyles.section}>Successful Posts</Text>
+          <TouchableOpacity
+            onPress={clearSuccessfulLogs}
+            style={logStyles.sectionIconButton}
+          >
+            <Ionicons name="trash" size={18} color="#d32f2f" />
+          </TouchableOpacity>
+        </View>
+        <View style={logStyles.listCard}>
+          <FlatList
+            data={successLogs}
+            keyExtractor={(_, idx) => "success" + idx}
+            renderItem={({ item }) => (
+              <View style={logStyles.logRow}>
+                <Text style={logStyles.pageId}>
+                  {getPageNameLabel(item.pageId)}
+                </Text>
+                <Text style={logStyles.caption}>{item.caption}</Text>
+                <Text style={logStyles.timestamp}>{item.timestamp}</Text>
+              </View>
+            )}
+            ListEmptyComponent={
+              <Text style={logStyles.empty}>No successful logs.</Text>
+            }
+          />
+        </View>
 
-      {/* <Text style={logStyles.section}>Failed Posts</Text> */}
-      <View style={logStyles.sectionRow}>
-        <Text style={logStyles.section}>Failed Posts</Text>
-        <TouchableOpacity
-          onPress={clearFailedLogs}
-          style={logStyles.sectionIconButton}
-        >
-          <Ionicons name="trash" size={18} color="#d32f2f" />
-        </TouchableOpacity>
+        <View style={logStyles.sectionRow}>
+          <Text style={logStyles.section}>Failed Posts</Text>
+          <TouchableOpacity
+            onPress={clearFailedLogs}
+            style={logStyles.sectionIconButton}
+          >
+            <Ionicons name="trash" size={18} color="#d32f2f" />
+          </TouchableOpacity>
+        </View>
+        <View style={logStyles.listCard}>
+          <FlatList
+            data={failedLogs}
+            keyExtractor={(_, idx) => "failed" + idx}
+            renderItem={({ item }) => (
+              <View style={logStyles.logRowError}>
+                <Text style={logStyles.pageId}>
+                  {getPageNameLabel(item.pageId)}
+                </Text>
+                <Text style={logStyles.caption}>{item.caption}</Text>
+                <Text style={logStyles.timestamp}>{item.timestamp}</Text>
+                <Text style={logStyles.error}>
+                  {JSON.stringify(item.response)}
+                </Text>
+              </View>
+            )}
+            ListEmptyComponent={
+              <Text style={logStyles.empty}>No failed logs.</Text>
+            }
+          />
+        </View>
       </View>
-      <View style={logStyles.listCard}>
-        <FlatList
-          // style={logStyles.listCard}
-          data={failedLogs}
-          keyExtractor={(_, idx) => "failed" + idx}
-          renderItem={({ item }) => (
-            <View style={logStyles.logRowError}>
-              <Text style={logStyles.pageId}>{getPageNameLabel(item.pageId)}</Text>
-              <Text style={logStyles.caption}>{item.caption}</Text>
-              <Text style={logStyles.timestamp}>{item.timestamp}</Text>
-              <Text style={logStyles.error}>{JSON.stringify(item.response)}</Text>
-            </View>
-          )}
-          ListEmptyComponent={<Text style={logStyles.empty}>No failed logs.</Text>}
-        />
-      </View>
-      {/* <View style={logStyles.buttonRow}>
-        <Button title="Clear Successful Logs" color="#107913ff" onPress={clearSuccessfulLogs} />
-        <Button title="Clear Failed Logs" color="#f38564ff" onPress={clearFailedLogs} />
-      </View> */}
-    </View>
     </SafeAreaView>
   );
 }
@@ -215,11 +243,20 @@ const logStyles = StyleSheet.create({
     fontSize: 10,
     marginTop: 1,
   },
-  // buttons row etc...
-  buttonRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 14 },
-  error: { color: "#d32f2f", fontSize: 11 },
-  empty: { color: "#bdbdbd", paddingVertical: 16, textAlign: "center" },
-    // existing styles...
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 14,
+  },
+  error: { 
+    color: "#d32f2f", 
+    fontSize: 11
+  },
+  empty: { 
+    color: "#bdbdbd", 
+    paddingVertical: 16, 
+    textAlign: "center"
+  },
   sectionRow: {
     flexDirection: "row",
     alignItems: "center",

@@ -74,7 +74,16 @@ export async function loadSubscriptionKey(): Promise<string | null> {
   }
 }
 
+// import { loadUser, saveUser, StoredUser, saveSubscriptionKey, loadSubscriptionKey } from "./utils";
+// adjust imports to match your actual file
 
+export async function updateUser(partial: Partial<StoredUser>): Promise<StoredUser | null> {
+  const current = await loadUser();
+  if (!current) return null;
+  const updated: StoredUser = { ...current, ...partial };
+  await saveUser(updated);
+  return updated;
+}
 
 export async function validateSubsKey(): Promise<boolean> {
   try {

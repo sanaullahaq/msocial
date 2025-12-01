@@ -13,7 +13,6 @@ type PageSetting = { pageName: string; pageId: string; accessToken: string };
 type AlertType = 'success' | 'warning' | 'error';
 
 export default function SettingsScreen() {
-  const [subscriptionKey, setSubscriptionKey] = useState("");
   const [pages, setPages] = useState<PageSetting[]>([]);
   const [newPageName, setNewPageName] = useState("");
   const [newPageId, setNewPageId] = useState("");
@@ -23,7 +22,6 @@ export default function SettingsScreen() {
 
   const [showAlert, setShowAlert] = useState(false);
   const [alertType, setAlertType] = useState<AlertType>('success');
-    // Use state for custom title/message
   const [alertTitle, setAlertTitle] = useState('Operation Successful');
   const [alertMessage, setAlertMessage] = useState('Your post was published.');
 
@@ -34,7 +32,6 @@ export default function SettingsScreen() {
         if (!info.exists) return;
         const content = await readAsStringAsync(SETTINGS_FILE);
         const data = JSON.parse(content);
-        setSubscriptionKey(data.subscriptionKey || "");
         setPages(data.pages || []);
       } catch (e) {
         console.log("Load error:", e);
@@ -56,7 +53,7 @@ export default function SettingsScreen() {
 
   const saveSettings = async () => {
     try {
-      const data = { subscriptionKey, pages };
+      const data = { pages };
       await writeAsStringAsync(SETTINGS_FILE, JSON.stringify(data));
     } catch (e) {
       console.log(e);
@@ -129,22 +126,10 @@ export default function SettingsScreen() {
           message={alertMessage}     // Custom message
           onClose={() => setShowAlert(false)}
         />
-        <Text style={settingsStyles.header}>Settings</Text>
+        <Text style={settingsStyles.header}>Page Settings</Text>
         <Text style={settingsStyles.helper}>
-          Configure your subscription and Facebook pages for posting.
+          Configure your Facebook and other pages for posting.
         </Text>
-        {/* Subscription card */}
-        <View style={settingsStyles.card}>
-          <Text style={settingsStyles.sectionTitle}>Subscription</Text>
-          <Text style={settingsStyles.label}>Subscription Key</Text>
-          <TextInput
-            value={subscriptionKey}
-            onChangeText={setSubscriptionKey}
-            placeholder="Enter Subscription Key"
-            placeholderTextColor={colors.textMuted}
-            style={settingsStyles.input}
-          />
-        </View>
 
         {/* Add Page card */}
         <View style={settingsStyles.card}>
@@ -295,7 +280,6 @@ const settingsStyles = StyleSheet.create({
   pageCard: {
     ...card.base,
     marginBottom: spacing.md,
-    // borderLeftWidth: 4,
     borderColor: colors.primarySoft,
     paddingVertical: spacing.md,
     position: "relative", // important for absolute actionsRow
@@ -351,5 +335,4 @@ const settingsStyles = StyleSheet.create({
   iconRemove: {
     backgroundColor: "#ffebee", // soft red
   },
-
 });
