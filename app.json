@@ -8,7 +8,7 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon-msocial.png",
+      "image": "./assets/images/splash-icon-msocial.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
